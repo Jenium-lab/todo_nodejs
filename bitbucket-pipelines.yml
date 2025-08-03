@@ -1,0 +1,58 @@
+image: node:18
+
+definitions:
+  services:
+    docker:
+      memory: 2048
+
+pipelines:
+  default:
+    - step:
+        name: Install Dependencies
+        script:
+          - cd backend && npm install
+          - cd frontend && npm install
+    
+    - step:
+        name: Build Frontend
+        script:
+          - cd frontend
+          - npm run build
+        artifacts:
+          - frontend/dist/**
+    
+    - step:
+        name: Build Docker Images
+        services:
+          - docker
+        script:
+          - docker build -t todo-backend ./backend
+          - docker build -t todo-frontend ./frontend
+          - docker build -t todo-nginx ./nginx
+          - echo "All images built successfully"
+
+  branches:
+    master:
+      - step:
+          name: Install Dependencies
+          script:
+            - cd backend && npm install
+            - cd frontend && npm install
+      
+      - step:
+          name: Build Frontend
+          script:
+            - cd frontend
+            - npm run build
+          artifacts:
+            - frontend/dist/**
+      
+      - step:
+          name: Build and Deploy
+          services:
+            - docker
+          script:
+            - docker build -t todo-backend ./backend
+            - docker build -t todo-frontend ./frontend
+            - docker build -t todo-nginx ./nginx
+            - echo "Production deployment ready"

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Database (MongoDB)
+  database:
+    image: mongo:7
+    container_name: todo-database
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: todoapp
+
+  # Backend API (Node.js)
+  backend:
+    build: ./backend
+    container_name: todo-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://admin:password@database:27017/todoapp?authSource=admin
+    depends_on:
+      - database
+
+  # Frontend (React)
+  frontend:
+    build: ./frontend
+    container_name: todo-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  # Reverse Proxy (Nginx)
+  nginx:
+    build: ./nginx
+    container_name: todo-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
