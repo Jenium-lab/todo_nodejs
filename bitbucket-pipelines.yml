@@ -17,6 +17,7 @@ pipelines:
         name: Build Frontend
         script:
           - cd frontend
+          - npm install --include=dev
           - npm run build
         artifacts:
           - frontend/dist/**
