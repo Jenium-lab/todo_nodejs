@@ -44,7 +44,6 @@ project-root/
 │   ├── package.json
 │   ├── server.js
 │   ├── Dockerfile
-│   ├── Dockerfile.dev
 │   └── .dockerignore
 ├── frontend/             # React application
 │   ├── package.json
@@ -52,7 +51,6 @@ project-root/
 │   ├── index.html
 │   ├── nginx.conf
 │   ├── Dockerfile
-│   ├── Dockerfile.dev
 │   ├── .dockerignore
 │   └── src/
 │       ├── main.jsx
@@ -94,7 +92,7 @@ project-root/
 
 1. **Development Mode with Hot Reload:**
    ```bash
-   docker-compose -f docker-compose.dev.yml up --build
+   docker-compose up --build
    ```
    
    This starts:
@@ -162,11 +160,6 @@ The project includes automated backup scripts for MongoDB:
 **Linux/Mac:**
 ```bash
 ./scripts/backup-mongodb.sh [backup_name]
-```
-
-**Windows:**
-```bash
-scripts\backup-mongodb.bat [backup_name]
 ```
 
 Backups are stored in the `./backups` directory and include:
