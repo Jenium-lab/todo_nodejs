@@ -1,59 +1,23 @@
 image: node:18
 
-definitions:
-  services:
-    docker:
-      memory: 2048
-
 pipelines:
   default:
     - step:
-        name: Install Dependencies
+        name: 'Build and Test'
         script:
-          - cd backend && npm install
-          - cd frontend && npm install
-    
+          - echo "Setting up the app..."
+          - npm install
+          - echo "Checking if the app works..."
+          - npm test
+        caches:
+          - node
     - step:
-        name: Build Frontend
+        name: 'Deploy to Production'
+        deployment: production
+        trigger: 'manual'
         script:
-          - cd frontend
-          - npm install --include=dev
-          - npm run build
-        artifacts:
-          - frontend/dist/**
-    
-    - step:
-        name: Build Docker Images
-        services:
-          - docker
-        script:
-          - docker build -t todo-backend ./backend
-          - docker build -t todo-frontend ./frontend
-          - docker build -t todo-nginx ./nginx
-          - echo "All images built successfully"
-
-  branches:
-    master:
-      - step:
-          name: Install Dependencies
-          script:
-            - cd backend && npm install
-            - cd frontend && npm install
-      
-      - step:
-          name: Build Frontend
-          script:
-            - cd frontend
-            - npm run build
-          artifacts:
-            - frontend/dist/**
-      
-      - step:
-          name: Build and Deploy
-          services:
-            - docker
-          script:
-            - docker build -t todo-backend ./backend
-            - docker build -t todo-frontend ./frontend
-            - docker build -t todo-nginx ./nginx
-            - echo "Production deployment ready"
+          - echo "Copying files to production..."
+          - apt-get update && apt-get install -y rsync
+          - rsync -rav --delete ./ ubuntu@103.90.86.229:/var/www/app/
+          - echo "Starting the app on production..."
+          - ssh -p 8080 ubuntu@103.90.86.229 "cd /var/www/app && npm install --production && npm start"
