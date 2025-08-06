@@ -1,23 +1,32 @@
-image: node:18
-
-pipelines:
+pelines:
   default:
     - step:
-        name: 'Build and Test'
+        name: 'Deploy Todo App'
+        runs-on:
+          - 'self.hosted'
+          - 'linux.shell'  # Updated to match the runner's label
         script:
-          - echo "Setting up the app..."
-          - npm install
-          - echo "Checking if the app works..."
-          - npm test
-        caches:
-          - node
-    - step:
-        name: 'Deploy to Production'
-        deployment: production
-        trigger: 'manual'
-        script:
-          - echo "Copying files to production..."
-          - apt-get update && apt-get install -y rsync
-          - rsync -rav --delete ./ ubuntu@103.90.86.229:/var/www/app/
-          - echo "Starting the app on production..."
-          - ssh -p 8080 ubuntu@103.90.86.229 "cd /var/www/app && npm install --production && npm start"
+          # Stop existing containers
+          - docker compose down || true
+
+          - export DOCKER_HOST=unix:///var/run/docker.sock
+          
+          # Build and start all services
+          - docker compose up -d --build
+          
+          # Wait for services with a longer timeout
+          - sleep 30  # Increased from 20 to give more time for startup
+          
+          # Health check with retry
+          - |
+            for i in {1..5}; do
+              if curl -f http://localhost:5000/api/health; then
+                echo "Health check passed"
+                break
+              else
+                echo "Health check failed, retrying... ($i/5)"
+                sleep 5
+              fi
+            done
+          
+          - echo "Todo App deployed successfully"
