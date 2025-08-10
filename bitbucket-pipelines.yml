@@ -1,4 +1,4 @@
-pelines:
+pipelines:
   default:
     - step:
         name: 'Deploy Todo App'
